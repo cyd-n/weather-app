@@ -183,7 +183,7 @@ src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
 <script>
     function Weather(){
         return{
-            chart: null,
+            charts: [],  // FIX: track all chart instances
             alone:true,
             forecast:[],
             days:2,
@@ -216,20 +216,16 @@ src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
             uv:"",
             visKm:"",
 
-            /*
-dewpoint_f: 35.4
-feelslike_f: 32.7
-gust_mph: 24.4
-heatindex_f: 41.8
-precip_in: 0
-pressure_in: 29.97
-temp_f: 41.2
-vis_miles: 2
-wind_mph: 17.2
-windchill_f: 33.5
-            */
+            // FIX: destroy all tracked chart instances and clear the array
+            destroyCharts(){
+                this.charts.forEach(c => c.destroy());
+                this.charts = [];
+            },
             
             GetWeather(){
+                // FIX: destroy old charts before fetching new data
+                this.destroyCharts();
+
                 fetch("https://api.weatherapi.com/v1/forecast.json?key=ea2e7c3147e248bf91e145718252102&q=&q=" + this.city + "&days=3&aqi=yes")
                     .then(response => response.json())
                     .then(data => {
@@ -272,7 +268,8 @@ windchill_f: 33.5
                                 const precip = day.hour.map(h => h.precip_mm);
                                 const snow = day.hour.map(h => h.snow_cm / 10);
 
-                                new Chart(document.getElementById("chart_" + i), {
+                                // FIX: store each new chart instance in this.charts
+                                this.charts.push(new Chart(document.getElementById("chart_" + i), {
                                     type: "line",
                                     data: {
                                         labels: hours,
@@ -312,8 +309,10 @@ windchill_f: 33.5
                                             xAxes: [{ ticks: { fontColor: "white" } }]
                                         }
                                     }
-                                });
-                                new Chart(document.getElementById("chartR_" + i), {
+                                }));
+
+                                // FIX: store each new chart instance in this.charts
+                                this.charts.push(new Chart(document.getElementById("chartR_" + i), {
                                     type: "line",
                                     data: {
                                         labels: hours,
@@ -346,7 +345,7 @@ windchill_f: 33.5
                                             xAxes: [{ ticks: { fontColor: "white" } }]
                                         }
                                     }
-                                });
+                                }));
  
                             });
 
